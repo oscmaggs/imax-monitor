@@ -1,0 +1,29 @@
+name: IMAX Monitor
+
+on:
+  schedule:
+    - cron: '0 21 * * 2'  # 7:00 AM AEST Tuesday
+  workflow_dispatch:
+
+jobs:
+  check-imax:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 plyer schedule
+
+      - name: Run monitor
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_ADDRESS1: ${{ secrets.EMAIL_ADDRESS1 }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        run: python3 "monitor copy.py" --once
