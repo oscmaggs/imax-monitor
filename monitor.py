@@ -202,6 +202,7 @@ def check(cfg: dict, state: dict) -> None:
                 # save_state(cfg["state_file"], state)
         else:
             log.info(f"'{cfg['target_movie']}' not found yet.")
+            send_email(cfg, cfg["target_movie"], "No tickets found yet — will check again next Tuesday.")
 
 if __name__ == "__main__":
     # Pull email password from environment variable if set (for GitHub Actions)
