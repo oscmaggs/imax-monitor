@@ -148,14 +148,23 @@ def send_desktop_notification(movie: str, details: str) -> None:
         log.warning(f"Desktop notification failed: {e}")
 
 
-def send_email(cfg: dict, movie: str, details: str) -> None:
-    subject = f"IMAX tickets on sale: {movie}"
-    body = (
-        f"Your target movie '{movie}' is now showing on IMAX!\n\n"
-        f"Details:\n{details}\n\n"
-        f"Book now: {cfg['url']}\n\n"
-        f"Detected at: {datetime.now().strftime('%d %b %Y %H:%M:%S')}"
-    )
+def send_email(cfg: dict, movie: str, details: str, found: bool = True) -> None:
+    if found:
+        subject = f"🎬 IMAX tickets on sale: {movie}"
+        body = (
+            f"Your target movie '{movie}' is now showing on IMAX!\n\n"
+            f"Details:\n{details}\n\n"
+            f"Book now: {cfg['url']}\n\n"
+            f"Detected at: {datetime.now().strftime('%d %b %Y %H:%M:%S')}"
+        )
+    else:
+        subject = f"❌ IMAX Monitor — {movie} not yet available"
+        body = (
+            f"'{movie}' is not showing on IMAX Sydney yet.\n\n"
+            f"Will check again next Tuesday.\n\n"
+            f"Checked at: {datetime.now().strftime('%d %b %Y %H:%M:%S')}"
+        )
+    
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = cfg["email_from"]
@@ -169,7 +178,6 @@ def send_email(cfg: dict, movie: str, details: str) -> None:
         log.info(f"Email alert sent to {cfg['email_to']}.")
     except Exception as e:
         log.error(f"Email send failed: {e}")
-
 
 def alert(cfg: dict, movie: str, matches: list[dict]) -> None:
     details = "\n".join(m["details"] for m in matches)
@@ -190,19 +198,12 @@ def check(cfg: dict, state: dict) -> None:
     if html:
         matches = find_movie(html, cfg["target_movie"])
         if matches:
-            key = content_hash("".join(m["details"] for m in matches))
-            # if key not in state["alerted_hashes"]:
             alert(cfg, cfg["target_movie"], matches)
             state["alerted_hashes"].append(key)
             save_state(cfg["state_file"], state)
-            # else:
-                # log.info("Already alerted — skipping.")
-                # alert(cfg, cfg["target_movie"], matches)
-                # state["alerted_hashes"].append(key)
-                # save_state(cfg["state_file"], state)
         else:
             log.info(f"'{cfg['target_movie']}' not found yet.")
-            send_email(cfg, cfg["target_movie"], "No tickets found yet — will check again next Tuesday.")
+            send_email(cfg, cfg["target_movie"], "", found=False)
 
 if __name__ == "__main__":
     # Pull email password from environment variable if set (for GitHub Actions)
