@@ -26,4 +26,4 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           EMAIL_ADDRESS1: ${{ secrets.EMAIL_ADDRESS1 }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        run: python3 "monitor copy.py" --once
+        run: python3 "monitor.py" --once
